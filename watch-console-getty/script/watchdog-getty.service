@@ -7,7 +7,7 @@ After=getty.target
 [Service]
 Type=forking
 ExecStart=/usr/local/bin/watchdog-getty.sh
-ExecStop=/bin/bash -c '$$(which kill) $(pidof agetty) $(pidof rsyslog) $MAINPID'
+ExecStop=/bin/bash -c '$$(which kill) $(pidof agetty) $(pidof rsyslogd) $MAINPID'
 WatchdogSec=30
 NotifyAccess=all
 Restart=always
