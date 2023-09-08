@@ -1,0 +1,53 @@
+#!/bin/bash
+
+TMP_RESULT=/tmp/dcha_monit_bash.out
+
+trap "rm -f ${TMP_RESULT}; kill $(jobs -p)" EXIT
+
+getPidByPort() {
+	pid=$(pidof agetty)
+}
+
+healthCheck() {
+    # limit whole check time in 8 seconds and connect time in 2 seconds
+    echo "hello" > /dev/console && HEALTH_STATUS="success" || HEALTH_STATUS="fail" 
+}
+
+watchdog() {
+    # INITIAL OF WATCHDOG
+    # go to watchdog logic when conditions down satisfied
+    #   - pid exist
+    #   - first health check status success
+    while : ; do
+        [[ -n $pid ]] && {
+            healthCheck
+            [[ $HEALTH_STATUS -eq "success" ]] && {
+                echo "healthCheck >>> notify systemd READY=1" # debug
+                systemd-notify --ready
+                break
+            }
+        } || {
+            getPidByPort
+            echo "getPidByPort >>> PID:$pid"                  # debug
+        }
+    done
+
+    # WATCHDOG START
+    while : ; do
+        interval=$(($WATCHDOG_USEC / $((2 * 1000000))))
+
+        healthCheck
+
+        if [[ $HEALTH_STATUS -eq "success" ]] ; then
+            #echo "watchdog detect success" # debug
+            systemd-notify WATCHDOG=1
+            sleep ${interval}
+        else
+            echo "watchdog detect failed" # debug
+            sleep 1
+        fi
+    done
+}
+
+
+watchdog &

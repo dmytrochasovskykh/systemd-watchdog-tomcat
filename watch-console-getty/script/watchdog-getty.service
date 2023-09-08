@@ -1,0 +1,20 @@
+[Unit]
+Description=watchdog agetty services monitoring
+Requires=getty.target
+After=getty.target
+
+ 
+[Service]
+Type=forking
+ExecStart=/usr/local/bin/watchdog-getty.sh
+ExecStop=/bin/bash -c '$$(which kill) $(pidof agetty) $(pidof rsyslog) $MAINPID'
+WatchdogSec=30
+NotifyAccess=all
+Restart=always
+RestartSec=2min
+StartLimitInterval=5min
+StartLimitBurst=4
+TimeoutStartSec=30min
+
+[Install]
+WantedBy=multi-user.target

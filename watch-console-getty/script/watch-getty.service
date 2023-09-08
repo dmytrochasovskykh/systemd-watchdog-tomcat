@@ -1,0 +1,17 @@
+[Unit]
+Description=watchdog test
+ 
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/monit-bash
+ExecStop=/bin/bash -c '$$(which kill) $(pidof agetty)'
+WatchdogSec=30
+NotifyAccess=all
+Restart=on-watchdog
+RestartSec=5s
+StartLimitInterval=5min
+StartLimitBurst=1
+TimeoutStartSec=2min
+ 
+[Install]
+WantedBy=multi-user.target
